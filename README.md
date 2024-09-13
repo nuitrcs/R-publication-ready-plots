@@ -1,4 +1,4 @@
-# Makiing publication-ready plots with R
+# Making publication-ready figures with R
 
 This workshop is being offered in-person in by [Northwestern IT Research Computing and Data Services](https://www.it.northwestern.edu/departments/it-services-support/research/).
 
