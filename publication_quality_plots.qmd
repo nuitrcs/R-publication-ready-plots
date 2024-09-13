@@ -1,0 +1,453 @@
+---
+output:
+  html_document:
+    df_print: paged
+    code_download: TRUE
+    toc: true
+    toc_depth: 1
+editor_options:
+  chunk_output_type: console
+---
+
+# Publication-ready figures in R
+
+## [Introductory concepts]{style="color:crimson"}
+
+#### [What makes a publication quality figure?]{style="color:purple"}
+
+So, after months (years?) of toil in the lab, you're finally ready to share your ground-breaking discovery with the world. You've collected enough data to impress even the harshest reviewers. You've tied it all together in a story so brilliant, it's sure to be one of the most cited papers of all time. Congratulations!
+
+But before you can submit your magnum opus to *Your Favorite Journal*, you have one more hurdle to cross. You have to build the figures. And they have to be "publication-quality." Those PowerPoint slides you've been showing at lab meetings? Not going to cut it.
+
+So, what exactly do you need to do for "publication-quality" figures? Generally speaking, we have four goals:
+
+-   **Accurately present the data** - your data undergoes a series of transformations to get from what you measure to what ends up in the journal. Exactly what each transformation entails should be clear and reproducible. Nothing in the workflow should be a magic "black box."
+-   **Conform to the journal's formatting requirements -** developing a workflow that is sufficiently flexible to handle a wide variety of formatting rules
+-   **Preserve image quality -** make sure the files you give the journal are as high-quality as possible going in.
+-   **Maintain transparency** - the figure-building workflow must be transparent. Every intermediate step from the raw data to the final figure should be saved, and it must be clear how each step is linked. Another reason to avoid black boxes.
+
+[\[Credit]{.underline}: Benjamin Nanes' [blog](https://b.nanes.org/figures/)\]
+
+To provide a simple visual guideline of which examples should be emulated and which should be avoided, here is an example:
+
+-   **ugly**---A figure that has aesthetic problems but otherwise is clear and informative.
+
+-   **bad**---A figure that has problems related to perception; it may be unclear, confusing, overly complicated, or deceiving.
+
+-   **wrong**---A figure that has problems related to mathematics; it is objectively incorrect.
+
+    ![](images/ugly-bad-wrong-examples-1.png){width="420"}
+
+\[[Source]{.underline}: Figure 1.1 Fundamentals of Data Visualization, Claus O. Wilke\]
+
+#### [Basics of `{ggplot2}`]{style="color:purple"}
+
+The R package *ggplot2* is the most widely used and aesthetically pleasing graphics framework available in R. It relies on a structure called the "grammar of graphics". Essentially, it follows a layered approach to describe and construct the visualization.
+
+Here is a handy [cheat sheet for ggplot2](https://statsandr.com/blog/files/ggplot2-cheatsheet.pdf)! Most users rely on the cheat-sheet because it is often difficult to remember the exact syntax and options.
+
+![](https://miro.medium.com/v2/resize:fit:2000/format:webp/1*mcLnnVdHNg-ikDbHJfHDNA.png){width="665"}
+
+[**Aesthetics**]{.underline}- Commonly used aesthetics in data visualization: position, shape, size, color, line width, line type. Some of these aesthetics can represent both continuous and discrete data (position, size, line width, color) while others can usually only represent discrete data (shape, line type).
+
+![](images/common-aesthetics-1.png){width="501"}
+
+\[[Source]{.underline}: Figure 2.1 Fundamentals of Data Visualization, Claus O. Wilke\]
+
+[**Scales**]{.underline}- Scales map data values onto aesthetics.
+
+![](images/basic-scales-example-1.png){width="498"}
+
+\[[Source]{.underline}: Figure 2.2 Fundamentals of Data Visualization, Claus O. Wilke \]
+
+#### [Using colors wisely]{style="color:purple"}
+
+There are three fundamental use cases for color in data visualizations:
+
+-   use color to distinguish groups of data from each other (categorical data)
+
+-   use color to represent data values (continuous data)
+
+-   use color to highlight certain values/data points for story-telling
+
+![](images/petownership-bar-1.png){width="351"}
+
+\[[Source]{.underline}: Pet popularity - Figure 29.8 Fundamentals of Data Visualization, Claus O. Wilke \]
+
+Note also in this figure, the absence of a traditional x- or y-axis line, and the use of minimal grid lines as guides for the eye. Also the exact amounts are listed at the top of each bar for even greater clarity.
+
+#### [Using scientific themes]{style="color:purple"}
+
+In `ggplot` themes can be [customized](https://rpubs.com/mclaire19/ggplot2-custom-themes) to every detail - the [possibilities](https://ggplot2.tidyverse.org/reference/theme.html) are endless! It is often helpful to create your own theme by modifying the defaults inside the `ggplot2::theme()` function and using the same theme all your plots to get consistent looking graphs.It is often helpful to create your own theme by modifying the defaults inside the `ggplot2::theme()` function and using the same theme all your plots to get consistent looking graphs.
+
+```{r}
+?theme
+```
+
+The [`{ggsci}`](https://cran.r-project.org/web/packages/ggsci/vignettes/ggsci.html) package offers a collection of high-quality color palettes inspired by colors used in scientific journals, data visualization libraries, science fiction movies, and TV shows. But there are several built-in themes in ggplot that you can use.
+
+The `{ggpubr}` package provides some easy-to-use functions for creating and customizing 'ggplot2'- based publication ready plots, with options to add error estimates and other scientific annotations easily. It also presents the data by default in clean themes with text label and axes label sizes that are large enough for publication.
+
+```{r}
+library(ggpubr)
+
+my_comparisions <- list(c("Adelie", "Chinstrap"), 
+                        c("Adelie", "Gentoo"), 
+                        c("Chinstrap", "Gentoo"))
+
+ggviolin(penguins, 
+         x = "species", y = "bill_length_mm", fill = "species",
+         add = "boxplot", add.params = list(fill = "white")) +
+  stat_compare_means(comparisons = my_comparisions) +
+  labs(y = "Bill length (mm)")
+```
+
+#### [Getting (your data) in shape]{style="color:purple"}
+
+An overlooked aspect of data visualization is formatting and reshaping the raw or processed data in a way that makes it easy to create the specific plot you want to create. This might involve renaming columns, pivoting the data from long to wide (or vice-versa), or creating new columns to hold the variables of interest.
+
+The `{tidyverse}` series of packages is a useful tool for data reshaping. NUIT RCDS offers several tidyverse workshops which can be accessed here - [R Tidyverse Basics](https://github.com/nuitrcs/R-intro-tidyverse-2024), and [R Intermediate Tidyverse](https://github.com/nuitrcs/R-intermediate-tidyverse-2024).
+
+#### [Which plot should I plot?]{style="color:purple"}
+
+There are several potential plot types you can create based on whether your data is categorical, discrete or continuous. The [from Data to Viz](https://www.data-to-viz.com) website offers visual and code examples of the most appropriate graph for your data, along with common mistakes to avoid for specific plot types. Remember, your graph must be an accurate representation of your data, and it can be very easy to unintentionally mislead the audience with poor visualization choices!
+
+The [R graph gallery](https://r-graph-gallery.com) is a collection of R code for hundreds of useful plot types and provides a useful starting point to explore and choose beautiful, informative visualizations.
+
+#### [Image file formats and saving high quality graphics]{style="color:purple"}
+
+Suppose you created a bunch of plots and now you want to save them, you can use the [`ggsave()`](https://ggplot2.tidyverse.org/reference/ggsave.html) function to do so:
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(palmerpenguins)
+
+my_plot <-
+  ggplot(data = penguins, 
+         aes(x = flipper_length_mm, 
+             y = body_mass_g,
+             group = species)) +
+  geom_point(aes(color = species), 
+             size = 2, 
+             alpha = 0.8) +
+  geom_smooth(method = "lm",
+              aes(color = species, fill = species),
+              alpha = 0.1) +
+  facet_grid( ~ species) +
+  labs(x = "Flipper length (mm)", 
+       y = "Body mass (g)", 
+       title = "Penguins Data") +
+  theme_classic()
+my_plot
+
+ggsave(filename = "my_beautiful_plot.pdf", 
+       plot = my_plot, 
+       height = 4, 
+       width = 6, 
+       units = "in",
+       dpi = 300,     # set the resolution (dpi = dots per inch)
+       device="pdf",  # set the type of graphic device - bitmap or vector
+       useDingbats=F) # setting useDingbats to FALSE lets you edit plot fonts in Illustrator
+```
+
+Note the use of the `useDingbats` parameter to make image text editable. This can be handy if you need to polish your figure in a different software like Adobe Illustrator. However, ideally your publication-ready plots should be automatically generated with code and should not need further editing in an external software.
+
+**File Formats**
+
+The most commonly used file formats are bitmap (or raster) and vector graphics. **Bitmaps** or raster graphics (such as png, jpeg, tiff) store the image as a grid of individual points (called pixels), each with a specified color. By contrast, **vector** graphics (such as pdf, eps, svg files) store the geometric arrangement of individual graphical elements in the image. My own preference is to use pdf for high-quality publication-ready files and generally whenever possible.
+
+Most bitmap file formats employ some form of **data compression** to keep file sizes manageable.There are two fundamental types of compression: lossless and lossy. Lossless compression guarantees that the compressed image is pixel-for-pixel identical to the original image, whereas lossy compression accepts some image degradation in return for smaller file sizes.
+
+It is generally possible to convert any image format into any other image format. For example, on a Mac, you can open an image with Preview and then export to a number of different formats. In this process, though, important information can get lost, and information is never regained. It is therefore a good rule of thumb to always store the original image in the format that maintains maximum resolution, accuracy, and flexibility.
+
+[**Suggestion**]{.underline} - For data visualizations, either create your figure as pdf and then convert into png or jpg when necessary, or alternatively store as high-resolution png. Similarly, for images that are only available as bitmaps, such as digital photographs, store them in a format that doesn't use lossy compression, or if that can't be done, compress as little as possible. Also, store the image in as high a resolution as possible, and downscale when needed.
+
+## [Solving specific problems]{style="color:crimson"}
+
+#### [Visualizing amounts]{style="color:purple"}
+
+In many scenarios, we are interested in the magnitude of some set of numbers. The standard visualization in this scenario is the bar plot, which comes in several variations, including simple bars as well as grouped and stacked bars. Alternatives to the bar plot are the dot plot and the heatmap.
+
+Some common problems with barplots are:
+
+-   long text labels
+-   bars not in the desired order
+-   no error bars, undefined error bars
+
+```{r}
+# Create data
+data <- data.frame(
+  name=c("A long label","B another long label","C yet another label","D tired of labels","E why are there labels") ,  
+  value=c(3,12,5,18,45)
+  )
+data
+
+# Barplot
+g <- ggplot(data, aes(x=name, y=value)) + 
+  geom_bar(stat = "identity", width = 0.9) +
+  theme_pubr()
+
+#---- long text labels -------
+g + coord_flip()
+g + coord_flip() + 
+  theme(
+        axis.line = element_blank(), # remove axis lines
+        panel.grid.major.x = element_line(),# add only x gridlines as visual guides
+        axis.text=element_text(size=18) # increase font size
+        ) 
+
+#---- bars not in the desired order  -------
+evp <- readr::read_csv("data/ev_police.csv")
+names(evp)
+barplot(table(evp$subject_race))
+
+evp$subject_race <- factor(evp$subject_race,
+                           levels = c("white", "black","hispanic", "asian/pacific islander","other" ))
+barplot(table(evp$subject_race))
+
+#---- no error bars -------
+# create dummy data
+data <- data.frame(
+  name=letters[1:5],
+  value=sample(seq(4,15),5),
+  sd=c(1,0.2,3,2,4)
+)
+data
+
+# Most basic error bar
+ggplot(data) +
+    geom_bar( aes(x=name, y=value), 
+              stat="identity", 
+              fill="skyblue", 
+              alpha=0.7) +
+    geom_errorbar( aes(x=name, ymin=value-sd, ymax=value+sd), 
+                   width=0.2,  # cap width
+                   colour="red3", 
+                   alpha=0.9, 
+                   size=0.8) +
+  theme_pubr()
+```
+
+#### [Visualizing distributions]{style="color:purple"}
+
+We frequently encounter the situation where we would like to understand how a particular variable is distributed in a dataset.
+
+Some common issues with density plots or histoograms are:
+
+-   too many histograms in one plot
+-   bin width or kernel width set badly
+-   highly skewed distributions - transform
+-   no statistical annotations
+-   sample size is not appropriate for chosen distribution display
+
+```{r}
+# choosing bin width
+g <- ggplot(penguins) +
+  aes(x = body_mass_g, group = species) + theme_pubr()
+
+g + geom_histogram(aes(color=species, fill=species))
+  
+g + geom_histogram(aes(color=species, fill=species),
+                   binwidth = 100 # choose appropriately
+                   )
+
+# too many distributions in one plot
+g + geom_density(aes(color=species, fill=species), 
+                 alpha = 0.4)
+
+g + geom_density(aes(color=species, fill=species), 
+                 alpha = 0.4) +
+  facet_wrap(~ species)
+```
+
+Other examples of dealing with multiple distributions:
+
+![](images/titanic-age-fractional-dens-1.png){width="446"}
+
+![](images/titanic-age-pyramid-1.png){width="447"}
+
+\[Source: Figure 7.9 and 7.10, Fundamentals of Data Visualization, Claus O. Wilke\]
+
+For multiple distributions, histograms tend to become highly confusing, whereas density plots work well as long as the distributions are somewhat distinct and contiguous.
+
+```{r}
+my_comparisions <- list(c("Adelie", "Chinstrap"), 
+                        c("Adelie", "Gentoo"), 
+                        c("Chinstrap", "Gentoo"))
+
+# add mean_ci, and add p-values
+ggviolin(penguins, 
+         x = "species", y = "bill_length_mm", fill = "species",
+         add = "mean_ci") +
+  stat_compare_means(comparisons = my_comparisions) +
+  labs(y = "Bill length (mm)")
+
+# if the sample size is not appropriate for chosen distribution display
+# you can also change the display order in the plot call, and add a dotplot if you have fewer points
+ggviolin(penguins, 
+         x = "species", y = "bill_length_mm", fill = "species",
+         add = c("dotplot"), add.params = list(fill="white", size=0.5),
+         order = c("Gentoo", "Adelie", "Chinstrap")) +
+  stat_compare_means(comparisons = my_comparisions) +
+  labs(y = "Bill length (mm)")
+```
+
+#### [Visualizing trends]{style="color:purple"}
+
+Common problems:
+
+-   trend line not correctly chosen
+-   no confidence interval bands
+
+```{r}
+g <- ggplot(data = penguins) +
+  aes(x = body_mass_g, y = flipper_length_mm) +
+  geom_point() + theme_pubr()
+
+g
+
+# Add a trend line
+g + geom_smooth(method="loess", se = FALSE,
+                color = "black", fill = "red3", alpha=0.4)
+
+# change smoothness of trend line
+g + geom_smooth(method="loess", span=0.2, se= FALSE,
+                color = "black", fill = "red3", alpha=0.4)
+
+# Add confidence bands
+g + geom_smooth(method="loess", span=0.2, se= TRUE,
+                color = "black", fill = "red3", alpha=0.4)
+
+# Add linear fit line
+g + geom_smooth(method="lm",
+                color = "black", fill = "red3", alpha=0.4)
+```
+
+#### [Visualizing uncertainty]{style="color:purple"}
+
+One of the most challenging aspects of data visualization is the visualization of uncertainty. When we see a data point drawn in a specific location, we tend to interpret it as a precise representation of the true data value. It is difficult to conceive that a data point could actually lie somewhere it hasn't been drawn. Yet this scenario is ubiquitous in data visualization. Nearly every data set we work with has some uncertainty, and whether and how we choose to represent this uncertainty can make a major difference in how accurately our audience perceives the meaning of the data. Two commonly used approaches to indicate uncertainty are error bars and confidence bands.
+
+**Error bars** are meant to indicate the range of likely values for some estimate or measurement. They extend horizontally and/or vertically from some reference point representing the estimate or measurement. Reference points can be shown in various ways, such as by dots or by bars. Graded error bars show multiple ranges at the same time, where each range corresponds to a different degree of confidence. They are in effect multiple error bars with different line thicknesses plotted on top of each other. We saw earlier how to use `geom_errorbar()` and the `{ggpubr}` package to add error bars.
+
+![](images/errorbars-1.png){width="648"}
+
+**Confidence strips** provide a clear visual sense of uncertainty but are difficult to read accurately. Eyes and half-eyes combine error bars with approaches to visualize distributions (violins and ridgelines, respectively), and thus show both precise ranges for some confidence levels and the overall uncertainty distribution. A quantile dot plot can serve as an alternative visualization of an uncertainty distribution. By showing the distribution in discrete units, the quantile dot plot is not as precise but can be easier to read than the continuous distribution shown by a violin or ridgeline plot.
+
+![](images/confidence-dists-1.png){width="643"}
+
+For smooth line graphs, the equivalent of an error bar is a **confidence band**. It shows a range of values the line might pass through at a given confidence level. As in the case of error bars, we can draw graded confidence bands that show multiple confidence levels at once. We can also show individual fitted draws in lieu of or in addition to the confidence bands. Look up `geom_ribbon()` to add several confidence bands calculated from your data onto your plot.
+
+![](images/confidence-bands-1.png){width="669"}
+
+[\[Credit]{.underline}: Fundamentals of Data Visualization, Claus O. Wilke\]
+
+```{r}
+# example of using geom_ribbon to add multiple bands around a calculated fit line
+huron <- data.frame(year = 1875:1972, level = as.vector(LakeHuron))
+h <- ggplot(huron, aes(year)) + theme_pubr()
+
+h +
+  geom_ribbon(aes(ymin = level - 2, ymax = level + 2), fill = "lightblue", alpha=0.2) +
+  geom_ribbon(aes(ymin = level - 1, ymax = level + 1), fill = "lightblue", alpha=0.5) +
+  geom_line(aes(y = level))
+```
+
+#### [Dealing with overlapping points]{style="color:purple"}
+
+#### [Creating multi-panel figures]{style="color:purple"}
+
+There are several packages such as `{patchwork}`, `{grid}` and `{cowplot}` which are extensions to ggplot and help with creating multi-panel plots. NUIT RCDS has workshops on [creating multi-panel plots in R](https://github.com/hscarter/Multipanel_Figures_Workshop), that you can reference.
+
+```{r}
+# create plots
+plot1 <- h +
+  geom_ribbon(aes(ymin = level - 2, ymax = level + 2), fill = "lightblue", alpha=0.2) +
+  geom_ribbon(aes(ymin = level - 1, ymax = level + 1), fill = "lightblue", alpha=0.5) +
+  geom_line(aes(y = level))
+
+plot2 <- ggviolin(penguins, 
+         x = "species", y = "bill_length_mm", fill = "species",
+         add = c("dotplot"), add.params = list(fill="white", size=0.5),
+         order = c("Gentoo", "Adelie", "Chinstrap")) +
+  stat_compare_means(comparisons = my_comparisions) +
+  labs(y = "Bill length (mm)")
+
+# using ggpubr
+ggarrange(plot1, plot2)
+ggarrange(plot1, plot2, labels = c("A", "B")) # add panel labels
+ggarrange(plot1, plot2, labels = c("A", "B"), widths = c(1.5, 1)) # change widths
+```
+
+#### [Avoiding Overplotting]{style="color:purple"}
+
+A common issue with high-density data is the sheer volume of data points to be displayed. This results in points laying on top of each other i.e. over-plotting. There are a few different ways to avoid overplotting:
+
+-   change the transparency (alpha) to show the density of points in one area of the graph
+-   jitter the points so they do not overlap in space
+-   use facets to show groups of points separately
+-   use contour plots and 2D density plots to show data density
+
+```{r}
+# contour plots
+v <- ggplot(faithfuld, aes(waiting, eruptions, z = density)) + theme_pubr()
+v + geom_contour()
+
+# filled contour plots
+v + geom_contour_filled()
+```
+
+#### [Adding text annotations]{style="color:purple"}
+
+The `{ggrepel}` package allows adding text annotations to your data. This can be helpful for pointing out interesting outliers or data points you want to highlight.
+
+```{r}
+# let's see some real world data
+corruption <- read_csv("data/DATA_WS_human-development-index-vs-corruption-perception-index.csv") %>% 
+  janitor::clean_names() %>% 
+  filter(year == 2015) %>% 
+  na.omit()
+
+names(corruption)
+View(corruption)
+names(corruption)[5] <- "cpi"
+names(corruption)[4] <- "hdi"
+names(corruption)[1] <- "country"
+```
+
+```{r}
+library(ggrepel)
+
+gg <- corruption %>% 
+  ggplot(aes(cpi, hdi)) + 
+    geom_smooth(
+      aes(color = "y ~ log(x)", fill = "y ~ log(x)"),
+      method = 'lm', formula = y~log(x), se = FALSE, fullrange = TRUE
+    ) +  theme_pubr() +
+    geom_point(
+      aes(color = continent, fill = continent),
+      size = 2.5, alpha = 0.5, shape = 21
+    ) +
+  scale_y_continuous(
+      limits = c(0.3, 1.05), breaks = c(0.2, 0.4, 0.6, 0.8, 1.0),
+      expand = c(0, 0),
+      name = "Human Development Index, 2015\n(1.0 = most developed)"
+    ) +
+  scale_x_continuous(
+      limits = c(10, 95),
+      breaks = c(20, 40, 60, 80, 100),
+      expand = c(0, 0),
+      name = "Corruption Perceptions Index, 2015 (100 = least corrupt)"
+    ) 
+
+gg
+
+# Add text labels
+gg + 
+    geom_text_repel(
+      aes(label = country), color = "black", size = 10/.pt,
+      point.padding = 0.1, box.padding = .6, force = 1.,
+      min.segment.length = 0, seed = 7654,
+      family = "Arial"
+    ) 
+```
