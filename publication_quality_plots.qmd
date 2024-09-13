@@ -353,8 +353,6 @@ h +
   geom_line(aes(y = level))
 ```
 
-#### [Dealing with overlapping points]{style="color:purple"}
-
 #### [Creating multi-panel figures]{style="color:purple"}
 
 There are several packages such as `{patchwork}`, `{grid}` and `{cowplot}` which are extensions to ggplot and help with creating multi-panel plots. NUIT RCDS has workshops on [creating multi-panel plots in R](https://github.com/hscarter/Multipanel_Figures_Workshop), that you can reference.
